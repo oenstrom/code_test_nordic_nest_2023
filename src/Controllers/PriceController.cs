@@ -24,21 +24,16 @@ public class PriceController : ControllerBase {
 
     return await _context.Price.ToListAsync();
   }
+  
+  /// <summary>Get prices by SKU (CatalogEntryCode).</summary>
+  /// <param name="sku">The SKU (CatalogEntryCode)</param>
+  /// <returns>List of prices.</returns>
+  /// <remarks>Path: /Price/:sku</remarks>
+  [HttpGet("{sku}")]
+  public async Task<ActionResult<IEnumerable<Price>>> GetPrice(string sku) {
+    var prices = await _context.Price.Where(p => p.CatalogEntryCode == sku).ToListAsync();
 
-  // GET: /Price/5
-  [HttpGet("{id}")]
-  public async Task<ActionResult<Price>> GetPrice(int id) {
-    if (_context.Price == null) {
-      return NotFound();
-    }
-
-    var price = await _context.Price.FindAsync(id);
-
-    if (price == null) {
-      return NotFound();
-    }
-
-    return price;
+    return prices;
   }
 
   private bool PriceExists(int id) {
