@@ -1,7 +1,9 @@
-﻿namespace src.Models;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace src.Models;
 
 public class Price {
-  public int PriceValueId { get; set; }
+  [Key] public int PriceValueId { get; set; }
   public DateTime Created { get; set; }
   public DateTime Modified { get; set; }
   public string? CatalogEntryCode { get; set; }
