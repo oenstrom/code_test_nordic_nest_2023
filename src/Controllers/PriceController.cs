@@ -31,7 +31,19 @@ public class PriceController : ControllerBase {
   /// <remarks>Path: /Price/:sku</remarks>
   [HttpGet("{sku}")]
   public async Task<ActionResult<IEnumerable<Price>>> GetPrice(string sku) {
-    var prices = await _context.Price.Where(p => p.CatalogEntryCode == sku).ToListAsync();
+    var prices = await _context.Price
+      .Where(p => p.CatalogEntryCode == sku && p.MarketId == "sv")
+      // Orcer by ValidUntil descending nulls are the greatest, then by ValidFrom descending
+      .OrderByDescending(p => p.ValidUntil == null)
+      .ThenByDescending(p => p.ValidUntil)
+      // .ThenByDescending(p => p.ValidFrom)
+      .ToListAsync();
+    // List<Price> result = new();
+    // for (var i = 0; i < prices.Count; i++) {
+    //   var p = new Price {
+    //     PriceValueId = prices[i].PriceValueId
+    //   };
+    // }
 
     return prices;
   }
