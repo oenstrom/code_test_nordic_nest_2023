@@ -22,6 +22,7 @@ public class LoadCsv {
       reader,
       new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture) { Delimiter = "\t" }
     );
+    csv.Context.RegisterClassMap<PriceClassMap>();
     var records = csv.GetRecords<Price>();
     if (!_context.Database.EnsureCreated()) return;
     _context.Price.AddRange(records);
