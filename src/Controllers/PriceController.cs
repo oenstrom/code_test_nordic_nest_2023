@@ -14,27 +14,26 @@ public class PriceController : ControllerBase {
     _context = context;
   }
 
-  // GET: /Price
-  [HttpGet]
-  public async Task<ActionResult<IEnumerable<Price>>> GetPrice() {
-    // return NotFound();
-    // if (_context.Price == null) {
-    //   return NotFound();
-    // }
-
-    return await _context.Price.ToListAsync();
-  }
-  
   /// <summary>Get prices by SKU (CatalogEntryCode).</summary>
   /// <param name="sku">The SKU (CatalogEntryCode)</param>
   /// <returns>List of prices.</returns>
   /// <remarks>Path: /Price/:sku</remarks>
   [HttpGet("{sku}")]
-  public async Task<ActionResult<IEnumerable<Price>>> GetPrice(string sku) {
-    var prices = await _context.Price.Where(p => p.CatalogEntryCode == sku && p.MarketId == "sv").ToListAsync();
+  public async Task<ActionResult<IEnumerable<List<Price>>>> GetPrice(string sku) {
+    var prices = await _context.Price.Where(p => p.CatalogEntryCode == sku).ToListAsync();
     if (prices.Count == 0) {
       return NotFound();
     }
+
+    return
+      prices.GroupBy(p => new { p.MarketId, p.CurrencyCode }).ToList()
+        .Select(priceGroup => GetOptimizedPrices(priceGroup.ToList())).ToList();
+  }
+
+  /// <summary>Get the optimized prices for a list of prices.</summary>
+  /// <param name="prices">The list of prices to optimize</param>
+  /// <returns>The optimized list of prices</returns>
+  private List<Price> GetOptimizedPrices(List<Price> prices) {
     prices.ForEach(p => p.ValidUntil ??= DateTime.MaxValue);
     var lowestPrices = prices.OrderBy(p => p.UnitPrice).ThenByDescending(p => p.ValidUntil).ToList();
     var sortedPrices = prices.OrderBy(p => p.ValidFrom).ThenBy(p => p.ValidUntil).ThenBy(p => p.UnitPrice).ToList();
@@ -66,13 +65,12 @@ public class PriceController : ControllerBase {
         temp.ValidFrom = optimizedPrices.Last().ValidUntil;
         optimizedPrices.Add(temp);
       }
-      
-      previous = current;
+
+      previous = optimizedPrices.Last();
       if (sortedPrices.Count != 0) continue;
       sortedPrices.AddRange(lowestPrices.Where(entry => entry.ValidUntil > optimizedPrices.Last().ValidUntil));
       done = true;
     }
-
 
     optimizedPrices.ForEach(p => p.ValidUntil = p.ValidUntil == DateTime.MaxValue ?  null : p.ValidUntil);
     return optimizedPrices;
@@ -88,15 +86,13 @@ public class PriceController : ControllerBase {
   private Price FillGap(Price previous, Price current , List<Price> lowestPrices, List<Price> sortedPrices, List<Price> optimizedPrices) {
     foreach (var entry in lowestPrices) {
       if (!(entry.ValidFrom <= previous.ValidUntil) || !(entry.ValidUntil > previous.ValidUntil)) continue;
-      optimizedPrices.Add(entry.Clone());
+      var temp = entry.Clone();
+      temp.ValidFrom = optimizedPrices.Last().ValidUntil;
+      optimizedPrices.Add(temp);
       sortedPrices.Insert(0, current);
-      return entry.Clone();
+      return temp;
     }
     optimizedPrices.Add(current.Clone());
     return current;
-  }
-
-  private bool PriceExists(int id) {
-    return (_context.Price?.Any(e => e.PriceValueId == id)).GetValueOrDefault();
   }
 }
