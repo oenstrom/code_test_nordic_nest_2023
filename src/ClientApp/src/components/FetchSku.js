@@ -18,6 +18,18 @@ export default function FetchSku() {
   }, [sku])
   
   console.log(prices)
+  
+  const formatDate = (dateString) => {
+    if (dateString === null) return ""
+    const date = new Date(dateString)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hour = String(date.getHours()).padStart(2, '0')
+    const minute = String(date.getMinutes()).padStart(2, '0')
+    return `${year}-${month}-${day} ${hour}:${minute}`
+  }
+    
 
   return (
     <div>
@@ -36,14 +48,19 @@ export default function FetchSku() {
             </tr>
           </thead>
           <tbody>
-          {prices.map(p => 
-            <tr key={p.priceValueId} className="odd:bg-white even:bg-slate-100 text-center">
+          {prices.map(group =>
+            group.map((p, i) =>
+            <tr key={`${i}-${p.priceValueId}`} className="odd:bg-white even:bg-slate-100 text-center">
               <td className="p-2">{p.marketId}</td>
               <td className="p-2">{p.unitPrice}</td>
               <td className="p-2">{p.currencyCode}</td>
-              <td className="p-2">{p.validFrom} - {p.validUntil}</td>
+              <td className="p-2">
+                <div className="flex">
+                {formatDate(p.validFrom)} - {formatDate(p.validUntil)}
+                </div>
+              </td>
             </tr>
-          )}
+          ))}
           </tbody>
         </table>
       : <p>Ingen data hittades!</p>}
