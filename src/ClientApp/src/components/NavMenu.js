@@ -7,8 +7,6 @@ export default function NavMenu() {
       <nav className="flex">
         <ul className="navbar-nav flex-grow">
           <Link className="text-dark" to="/">Home</Link>
-          <Link className="text-dark" to="/counter">Counter</Link>
-          <Link className="text-dark" to="/fetch-data">Fetch data</Link>
           <Link className="text-dark" to="/sku/27773-02">Fetch SKU</Link>
         </ul>
       </nav>
