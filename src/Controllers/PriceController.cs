@@ -48,32 +48,19 @@ public class PriceController : ControllerBase {
       var current = sortedPrices.First();
       sortedPrices.RemoveAt(0);
 
-      // If there is a gap between the current price and the previous price
+      // If there is a gap between the current Price and the Previous price
       if (current.ValidFrom > previous.ValidUntil) {
-        var didNotBreak = true;
-        foreach (var entry in lowestPrices) {
-          if (entry.ValidFrom <= previous.ValidUntil && entry.ValidUntil > previous.ValidUntil) {
-            var temp = entry.Clone();
-            optimizedPrices.Add(temp);
-            previous = temp;
-            sortedPrices.Insert(0, current);
-            didNotBreak = false;
-            break;
-          }
-        }
-        // No price fits the gap, just add the current price
-        if (didNotBreak) {
-         optimizedPrices.Add(current.Clone());
-         previous = current;
-        }
+        previous = FillGap(previous, current, lowestPrices, sortedPrices, optimizedPrices);
         continue;
       }
       
+      // If the current unitPrice is lower than the previous unitPrice
       if (current.UnitPrice < previous.UnitPrice) {
         optimizedPrices.Last().ValidUntil = current.ValidFrom;
         optimizedPrices.Add(current.Clone());
       }
       
+      // If we are at the end of the list, go through the remainders
       else if (done) {
         var temp = current.Clone();
         temp.ValidFrom = optimizedPrices.Last().ValidUntil;
@@ -89,6 +76,24 @@ public class PriceController : ControllerBase {
 
     optimizedPrices.ForEach(p => p.ValidUntil = p.ValidUntil == DateTime.MaxValue ?  null : p.ValidUntil);
     return optimizedPrices;
+  }
+
+  /// <summary>Find a Price to fill the gap with. If none is found, add the current one.</summary>
+  /// <param name="previous">The previous Price</param>
+  /// <param name="current">The current Price</param>
+  /// <param name="lowestPrices">The list of prices sorted by unitPrice</param>
+  /// <param name="sortedPrices">The list of prices sorted by ValidFrom, ValidUntil and unitPrice</param>
+  /// <param name="optimizedPrices">The list of optimized prices to add to</param>
+  /// <returns>The added Price object</returns>
+  private Price FillGap(Price previous, Price current , List<Price> lowestPrices, List<Price> sortedPrices, List<Price> optimizedPrices) {
+    foreach (var entry in lowestPrices) {
+      if (!(entry.ValidFrom <= previous.ValidUntil) || !(entry.ValidUntil > previous.ValidUntil)) continue;
+      optimizedPrices.Add(entry.Clone());
+      sortedPrices.Insert(0, current);
+      return entry.Clone();
+    }
+    optimizedPrices.Add(current.Clone());
+    return current;
   }
 
   private bool PriceExists(int id) {
