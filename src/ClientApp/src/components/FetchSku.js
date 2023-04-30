@@ -6,6 +6,7 @@ export default function FetchSku() {
   const {sku} = useParams()
   const [loading, setLoading] = useState(true)
   const [prices, setPrices] = useState([])
+  
   const fetchPrice = async (sku) => {
     setLoading(true)
     const response = await fetch(`Price/${sku}`)
@@ -17,8 +18,6 @@ export default function FetchSku() {
   useEffect(() => {
     fetchPrice(sku)
   }, [sku])
-  
-  console.log(prices)
   
   const formatDate = (dateString) => {
     if (dateString === null) return ""
