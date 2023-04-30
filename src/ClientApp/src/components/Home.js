@@ -1,7 +1,5 @@
+import NavigateSku from "./NavigateSku"
+
 export default function Home() {
-  return (
-    <div>
-      <h1>Hello, world!</h1>
-    </div>
-  )
+  return <NavigateSku />
 }

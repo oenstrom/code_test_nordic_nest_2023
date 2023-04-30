@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useState } from 'react'
 import { useParams} from "react-router-dom"
+import NavigateSku from "./NavigateSku"
 
 export default function FetchSku() {
   const {sku} = useParams()
@@ -33,11 +34,14 @@ export default function FetchSku() {
 
   return (
     <div className="h-full w-full p-4 flex flex-col overflow-auto">
-
-      {loading && <p><em>Loading...</em></p>}
+      <div className="flex w-full justify-center items-center mb-4">
+        <NavigateSku preFilledSku={sku} />
+      </div>
+      {loading && <p className="text-center text-white text-lg">Loading...</p>}
+      {!loading && prices.status &&  <p className="text-center text-white text-lg">No data found! 😢</p>}
       
       {!loading && prices.length > 0 &&
-        <table className="w-full table-fixed border-separate border-spacing-x-0 border-spacing-y-px" aria-labelledby="tableLabel">
+        <table className="w-full table-fixed border-separate border-spacing-x-0 border-spacing-y-px mt-4" aria-labelledby="tableLabel">
           <caption className="caption-top text-3xl font-bold text-slate-100 underline underline-offset-2 mb-2">SKU: {sku}</caption>
           <thead className="sticky -top-5 bg-slate-600 text-white">
             <tr className="rounded shadow">
@@ -53,7 +57,7 @@ export default function FetchSku() {
               {group.map((p, j) =>
                 <tr key={`${j}-${p.priceValueId}`} className="bg-slate-600 text-slate-100 border-b border-b-slate-500 text-center">
                   <td className="p-2">{p.marketId}</td>
-                  <td className="p-2">{p.unitPrice}</td>
+                  <td className="p-2">{p.unitPrice.toFixed(2)}</td>
                   <td className="p-2">{p.currencyCode}</td>
                   <td className="p-2">
                     {formatDate(p.validFrom)} - {formatDate(p.validUntil)}
@@ -70,8 +74,6 @@ export default function FetchSku() {
           )}
           </tbody>
         </table>}
-        
-        {!loading && prices.status &&  <p className="text-center">No data found!</p>}
     </div>
   )
 }
