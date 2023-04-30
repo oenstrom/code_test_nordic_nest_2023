@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { useParams} from "react-router-dom"
 
 export default function FetchSku() {
@@ -32,38 +32,46 @@ export default function FetchSku() {
     
 
   return (
-    <div>
-      <h1 id="tableLabel" className="text-3xl font-bold">SKU: {sku}</h1>
+    <div className="h-full w-full p-4 flex flex-col overflow-auto">
 
       {loading && <p><em>Loading...</em></p>}
       
-      {!loading && prices.length > 0 ?
-        <table className="w-full" aria-labelledby="tableLabel">
-          <thead>
-            <tr>
-              <th>Marknad</th>
-              <th>Pris</th>
-              <th>Valuta</th>
-              <th>Start och slut</th>
+      {!loading && prices.length > 0 &&
+        <table className="w-full table-fixed border-separate border-spacing-x-0 border-spacing-y-px" aria-labelledby="tableLabel">
+          <caption className="caption-top text-3xl font-bold text-slate-100 underline underline-offset-2 mb-2">SKU: {sku}</caption>
+          <thead className="sticky -top-5 bg-slate-600 text-white">
+            <tr className="rounded shadow">
+              <th className="w-2/12 p-4 rounded-tl">Market</th>
+              <th className="w-3/12 p-4">Price</th>
+              <th className="w-2/12 p-4">Currency</th>
+              <th className="p-4 rounded-tr">Start and End</th>
             </tr>
           </thead>
           <tbody>
-          {prices.map(group =>
-            group.map((p, i) =>
-            <tr key={`${i}-${p.priceValueId}`} className="odd:bg-white even:bg-slate-100 text-center">
-              <td className="p-2">{p.marketId}</td>
-              <td className="p-2">{p.unitPrice}</td>
-              <td className="p-2">{p.currencyCode}</td>
-              <td className="p-2">
-                <div className="flex">
-                {formatDate(p.validFrom)} - {formatDate(p.validUntil)}
-                </div>
-              </td>
-            </tr>
-          ))}
+          {prices.map((group, i) =>
+            <Fragment key={`_${i}`}>
+              {group.map((p, j) =>
+                <tr key={`${j}-${p.priceValueId}`} className="bg-slate-600 text-slate-100 border-b border-b-slate-500 text-center">
+                  <td className="p-2">{p.marketId}</td>
+                  <td className="p-2">{p.unitPrice}</td>
+                  <td className="p-2">{p.currencyCode}</td>
+                  <td className="p-2">
+                    {formatDate(p.validFrom)} - {formatDate(p.validUntil)}
+                  </td>
+                </tr>
+              )}
+              <tr className="h-6 bg-transparent last:h-1 last:bg-slate-600 last:-translate-y-px">
+                <td className="rounded-bl"></td>
+                <td></td>
+                <td></td>
+                <td className="rounded-br"></td>
+              </tr>
+            </Fragment>
+          )}
           </tbody>
-        </table>
-      : <p>Ingen data hittades!</p>}
+        </table>}
+        
+        {!loading && prices.status &&  <p className="text-center">No data found!</p>}
     </div>
   )
 }
